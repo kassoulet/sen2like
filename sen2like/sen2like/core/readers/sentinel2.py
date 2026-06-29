@@ -422,3 +422,18 @@ class Sentinel2PrismaMTL(Sentinel2MTL):
     def can_read(product_name):
         name = os.path.basename(product_name)
         return name.startswith("S2P_MSIL1C") or name.startswith("S2P_MSIL2A")
+
+
+class Sentinel2ChimelikeMTL(Sentinel2MTL):
+    """Sentinel2MTL specialisation for S2H (CHIME-like input product).
+
+    Produced by the chime4sen2like preprocessor on the Sentinel-2 grid, so masks
+    follow the S2 60 m MSK_CLASSI convention.
+    """
+
+    mask_resolution = 60
+
+    @staticmethod
+    def can_read(product_name):
+        name = os.path.basename(product_name)
+        return name.startswith("S2H_MSIL1C") or name.startswith("S2H_MSIL2A")

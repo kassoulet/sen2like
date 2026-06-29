@@ -46,6 +46,12 @@ IMAGES_RES = {
     "B08": 10, "B8A": 20, "B09": 60, "B10": 60, "B11": 20, "B12": 20,
 }
 
+# Sentinel-2 L1C DN encoding (must match MTD_MSIL1C.xml): the reflectance stored
+# as DN is recovered by physical = (DN + RADIO_ADD_OFFSET) / QUANTIFICATION_VALUE.
+QUANTIFICATION_VALUE = 10000
+RADIO_ADD_OFFSET = -1000  # so DN = reflectance * QUANTIFICATION_VALUE - RADIO_ADD_OFFSET
+_WARP_NODATA = -9999.0  # float fill outside the source footprint before DN encoding
+
 
 @dataclass
 class MeanAngle:
@@ -211,27 +217,65 @@ class ProjectedCubeAdapter:
         res = IMAGES_RES[band_name]
         band_index = _BAND_INDEX[band_name] + 1  # GDAL is 1-based
 
-        # 1. extract the single band, 2. warp to tile CRS/extent/resolution
+        # 1. extract the single (reflectance) band
         single = os.path.join(self._wd, f"{band_name}_src.tif")
         gdal.Translate(single, self._cube_path, bandList=[band_index])
 
-        out_file = os.path.join(self._wd, f"{band_name}_{res}m.tif")
+        # 2. reframe to the MGRS tile (CRS / extent / resolution), keeping float
+        #    reflectance with an explicit nodata fill outside the footprint
+        warped = os.path.join(self._wd, f"{band_name}_{res}m_refl.tif")
         gdal.Warp(
-            out_file,
+            warped,
             single,
             options=gdal.WarpOptions(
+                outputType=gdal.GDT_Float32,
                 dstSRS=f"EPSG:{self._tile.epsg}",
                 outputBounds=self._tile.bounds,
                 xRes=res,
                 yRes=res,
                 resampleAlg="bilinear",
-                creationOptions=["COMPRESS=LZW"],
+                dstNodata=_WARP_NODATA,
             ),
         )
         os.remove(single)
+
+        # 3. encode reflectance to Sentinel-2 L1C DN (uint16, 0 = nodata) so the
+        #    raster is consistent with the MTD quantification/offset
+        out_file = os.path.join(self._wd, f"{band_name}_{res}m.tif")
+        self._encode_dn(warped, out_file)
+        os.remove(warped)
+
         self._band_files[band_name] = out_file
-        logger.info("Reframed %s -> %s (%dm)", band_name, os.path.basename(out_file), res)
+        logger.info("Reframed + DN-encoded %s -> %s (%dm)", band_name, os.path.basename(out_file), res)
         return out_file
+
+    @staticmethod
+    def _encode_dn(reflectance_path: str, out_path: str) -> None:
+        """Convert a float reflectance raster to Sentinel-2 L1C uint16 DN (0 = nodata)."""
+        from osgeo import gdal
+
+        source = gdal.Open(reflectance_path)
+        band = source.GetRasterBand(1)
+        array = band.ReadAsArray()
+        nodata = band.GetNoDataValue()
+
+        invalid = ~np.isfinite(array)
+        if nodata is not None:
+            invalid |= array == nodata
+        dn = np.rint(array * QUANTIFICATION_VALUE - RADIO_ADD_OFFSET)
+        dn = np.clip(dn, 0, 65535)
+        dn[invalid] = 0
+
+        driver = gdal.GetDriverByName("GTiff")
+        dataset = driver.Create(
+            out_path, source.RasterXSize, source.RasterYSize, 1, gdal.GDT_UInt16, options=["COMPRESS=LZW"]
+        )
+        dataset.SetGeoTransform(source.GetGeoTransform())
+        dataset.SetProjection(source.GetProjection())
+        out_band = dataset.GetRasterBand(1)
+        out_band.WriteArray(dn.astype(np.uint16))
+        out_band.SetNoDataValue(0)
+        dataset = None
 
     # --- masks ------------------------------------------------------------------
     def get_mask_file(self, mask_file_def: MaskFileDef) -> str | None:

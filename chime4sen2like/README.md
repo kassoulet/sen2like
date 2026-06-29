@@ -24,10 +24,11 @@ for the full reuse assessment.
 | Band-set model (replaces the hard-coded 13-band assumption) | **Implemented** |
 | Generic GeoTIFF-cube reader (orthorectified input) | **Implemented + run end-to-end** |
 | Radiance → TOA reflectance conversion | **Implemented** |
-| MGRS reframing + Sentinel-2-like SAFE L1C packaging (S2 13-band target) | **Implemented + run end-to-end** |
+| MGRS reframing + Sentinel-2-like SAFE L1C packaging (S2 13-band target, DN-encoded) | **Implemented + run end-to-end** |
+| sen2like recognises & parses the SAFE (`S2H` product + reader registered in sen2like core) | **Implemented + verified in the sen2like env** |
 | Mission-specific readers (CHIME L1C, SBG L1B, EnMAP, ...) | TODO |
 | L1B → orthorectification (alternative flow, Roadmap §5.1.6) | TODO |
-| Full sen2like L2H run on the produced SAFE | TODO (needs sen2like conda env + aux data) |
+| Full sen2like L2H processing run on the produced SAFE | TODO (needs sen2like aux data: CAMS/DEM/GRI) |
 
 ## What is different from prisma4sen2like
 
@@ -73,11 +74,16 @@ PYTHONPATH=chime python chime/main.py HS_CUBE BAND_CSV WORKING_DIR --package --t
 
 `--package` forces the Sentinel-2 13-band target (so the reused S2 SAFE templates
 apply), reframes each band onto the given MGRS `--tile`, and writes a SAFE L1C
-product tree (`<platform>_MSIL1C_..._T<tile>_...SAFE`) with band rasters, a
-`MSK_CLASSI` placeholder and rendered `MTD_MSIL1C`/`MTD_TL`/`MTD_DS`. The MGRS tile
-geometry is read from the existing `s2tiles.db` in the repository (no duplication)
-using stdlib `sqlite3` + `osgeo.ogr`. Running the resulting SAFE through sen2like
-needs the sen2like conda env and its auxiliary data (CAMS/DEM/GRI).
+product tree (`S2H_MSIL1C_..._T<tile>_...SAFE`) with uint16 DN band rasters
+(encoded to match the MTD quantification), a `MSK_CLASSI` placeholder and rendered
+`MTD_MSIL1C`/`MTD_TL`/`MTD_DS`. The MGRS tile geometry is read from the existing
+`s2tiles.db` in the repository (no duplication) using stdlib `sqlite3` +
+`osgeo.ogr`.
+
+sen2like recognises the product through the `S2H` product class
+(`ChimelikeProduct`) and reader (`Sentinel2ChimelikeMTL`) registered in sen2like
+core — verified by parsing a generated SAFE in the sen2like conda env. Running the
+full L2H *processing* additionally needs sen2like's auxiliary data (CAMS/DEM/GRI).
 
 ## Tests
 
@@ -117,10 +123,11 @@ chime4sen2like/
    official CHIME spectral response definition ([RD01]/[AD01]).
 3. **Geometry** — for the L1B flow (§5.1.6), add orthorectification from per-pixel
    geolocation; reuse sen2like `grids/mgrs_framing.py` for reframing.
-4. **End-to-end validation** — run the produced SAFE through sen2like (needs the
-   sen2like conda env + CAMS/DEM/GRI aux data) and register a CHIME product class
-   in sen2like `core/products` + `PROC_BLOCKS`. Native N-band (CHIME) SAFE output
-   additionally needs the sen2like core band model generalised beyond 13 bands.
+4. **End-to-end validation** — run the produced SAFE through the full sen2like L2H
+   pipeline (needs CAMS/DEM/GRI aux data). The `S2H` product class
+   (`ChimelikeProduct`) and reader (`Sentinel2ChimelikeMTL`) are already registered
+   in sen2like core. Native N-band (CHIME) SAFE output additionally needs the
+   sen2like core band model generalised beyond 13 bands.
 
 ## License
 

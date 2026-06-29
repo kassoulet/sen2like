@@ -200,3 +200,25 @@ class PrismaProduct(Sentinel2Product):
     def get_smac_filename(self, band):
         # Prisma: use S2A coefficients
         return self._SMAC_COEF_FILES["S2A"]
+
+
+class ChimelikeProduct(Sentinel2Product):
+    """CHIME-like input product (S2H), produced by the chime4sen2like preprocessor.
+
+    A hyperspectral mission spectrally aggregated onto the Sentinel-2 band set and
+    projected to the S2 L1C geometry (analogous to the PRISMA / S2P precedent).
+    Per the CHIME Fusion Roadmap (section 5.1.5.3) a single rigid tile shift is
+    expected to be enough for the geometry refinement, hence the 'translation'
+    correction strategy.
+    """
+
+    sensor = "Chimelike"
+    geometry_correction_strategy = "translation"
+
+    @staticmethod
+    def can_handle(product_name):
+        return os.path.basename(product_name).startswith("S2H")
+
+    def get_smac_filename(self, band):
+        # Chimelike: use S2A atmospheric coefficients until CHIME-specific ones exist
+        return self._SMAC_COEF_FILES["S2A"]
