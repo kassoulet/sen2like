@@ -33,7 +33,7 @@ import sys
 import time
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError
 
-from band_definitions import chime_band_set
+from band_definitions import chime_band_set, sentinel2a_band_set
 from chime_aggregation import ChimeAggregation
 from hs_product import GeoTiffHyperspectralProduct
 from log import configure_logging
@@ -77,6 +77,13 @@ _arg_parser.add_argument(
     help="Target band CSV (defaults to the shipped CHIME placeholder band set)",
 )
 _arg_parser.add_argument("--sun-zenith", type=float, default=30.0, help="Scene solar zenith angle (deg)")
+_arg_parser.add_argument(
+    "--package",
+    action="store_true",
+    help="After aggregation, build a Sentinel-2-like SAFE L1C product (forces the S2 13-band target). Requires --tile.",
+)
+_arg_parser.add_argument("--tile", default=None, help="MGRS tile code for SAFE packaging, e.g. 31TFJ")
+_arg_parser.add_argument("--platform", default="S2H", help="Platform code used in SAFE product naming")
 _arg_parser.add_argument("--debug", action="store_true", help="Verbose logging")
 
 
@@ -90,7 +97,13 @@ def main(argv: list[str]) -> int:
     os.mkdir(work_dir)
     logger.info("Working dir: %s", work_dir)
 
-    if args.target_band_csv:
+    if args.package and not args.tile:
+        _arg_parser.error("--package requires --tile (e.g. --tile 31TFJ)")
+
+    # Packaging reuses the Sentinel-2 SAFE templates, so it targets the S2 13-band set.
+    if args.package:
+        target = sentinel2a_band_set()
+    elif args.target_band_csv:
         from band_definitions import BandSet
 
         target = BandSet.from_csv(args.target_band_csv, name="CHIME")
@@ -104,14 +117,23 @@ def main(argv: list[str]) -> int:
     )
 
     aggregation = ChimeAggregation(product, target, work_dir)
-    aggregation.process()
+    _, reflectance_path = aggregation.process()
 
-    # TODO (see README "Roadmap"):
-    #   * MGRS re-projection / reframing to the Sentinel-2 grid
-    #     (reuse sen2like grids/mgrs_framing.py, as prisma4sen2like does);
-    #   * SAFE packaging into a CHIME-internal L1C product
-    #     (reuse the prisma4sen2like product_builder + adapter).
-    logger.info("Spectral harmonisation finished. SAFE packaging is not yet wired (see README).")
+    if not args.package:
+        logger.info("Spectral harmonisation finished. Use --package --tile to build a SAFE product.")
+        return 0
+
+    # SAFE packaging: reframe to the MGRS tile + build the SAFE L1C tree.
+    from mgrs_tiling import resolve_tile
+    from safe_adapter import ProjectedCubeAdapter
+    from safe_builder import SafeBuilder
+    from safe_product import SafeProduct
+
+    tile = resolve_tile(args.tile)
+    adapter = ProjectedCubeAdapter(product, reflectance_path, tile, work_dir, platform=args.platform)
+    safe_product = SafeProduct(adapter)
+    safe_dir = SafeBuilder(safe_product, work_dir, args.working_dir).build()
+    logger.info("SAFE L1C product built: %s", safe_dir)
     return 0
 
 

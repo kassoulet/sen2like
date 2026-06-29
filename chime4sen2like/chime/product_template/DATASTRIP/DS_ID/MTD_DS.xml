@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<n1:Level-1C_DataStrip_ID xmlns:n1="https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Datastrip_Metadata.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Datastrip_Metadata.xsd">
+  <!--
+    chime4sen2like compact datastrip metadata.
+    prisma4sen2like ships a ~316k-line MTD_DS.xml that is mostly static content
+    not required for L1C ingestion. This compact, well-formed version carries the
+    fields the packaging fills in; substitute the full operational template when
+    a complete datastrip description is required.
+  -->
+  <n1:General_Info>
+    <Datastrip_Info metadataLevel="Brief">
+      <DATASTRIP_ID>{{ product.datastrip_identifier }}</DATASTRIP_ID>
+      <DATATAKE_ID datatakeIdentifier="{{ product.datatake_identifier }}">
+        <DATATAKE_TYPE>INS-NOBS</DATATAKE_TYPE>
+        <DATATAKE_SENSING_START>{{ datatake_sensing_start }}</DATATAKE_SENSING_START>
+        <SPACECRAFT_NAME>{{ product.spacecraft }}</SPACECRAFT_NAME>
+        <SENSING_ORBIT_NUMBER>{{ product.sensing_orbit_number }}</SENSING_ORBIT_NUMBER>
+        <SENSING_ORBIT_DIRECTION>{{ product.sensing_orbit_direction }}</SENSING_ORBIT_DIRECTION>
+      </DATATAKE_ID>
+      <DATASTRIP_SENSING_START>{{ datastrip_sensing_start }}</DATASTRIP_SENSING_START>
+      <DATASTRIP_SENSING_STOP>{{ datastrip_sensing_stop }}</DATASTRIP_SENSING_STOP>
+    </Datastrip_Info>
+    <Processing_Info metadataLevel="Standard">
+      <UTC_DATE_TIME>{{ processing_time }}</UTC_DATE_TIME>
+      <PROCESSING_BASELINE>{{ product.baseline }}</PROCESSING_BASELINE>
+      <Archiving_Info>
+        <ARCHIVING_CENTRE>{{ product.archiving_center }}</ARCHIVING_CENTRE>
+        <RECEPTION_STATION>{{ product.reception_station }}</RECEPTION_STATION>
+        <PROCESSING_CENTER>{{ product.processing_center }}</PROCESSING_CENTER>
+      </Archiving_Info>
+    </Processing_Info>
+  </n1:General_Info>
+  <n1:Quality_Indicators_Info metadataLevel="Standard"/>
+</n1:Level-1C_DataStrip_ID>
