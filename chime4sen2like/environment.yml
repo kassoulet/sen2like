@@ -1,0 +1,20 @@
+name: chime4sen2like
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - gdal=3.6.3
+  - numpy=1.24
+  - scipy=1.10
+  - jinja2=3.1.2
+  - mgrs=1.4.3
+  - python-dateutil=2.8.2
+  - scikit-image=0.19.3
+  - shapely=2.0.1
+  # Optional, only for mission-specific HDF5/NetCDF readers (e.g. PRISMA-style):
+  - h5py=3.8.0
+  # Dev tooling:
+  - pytest
+  - black
+  - isort
+  - pre-commit
