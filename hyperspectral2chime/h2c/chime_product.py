@@ -81,6 +81,7 @@ class ChimeProduct:
     sun_zenith: float
     sun_azimuth: float
     processing_level: str = "L1C"  # L1C -> L2H -> L2F
+    radiometric_unit: str = "TOA_reflectance"  # or "TOA_radiance" (W.m-2.sr-1.um-1)
     provenance: list[str] = field(default_factory=list)
 
     def read_cube(self) -> NDArray:
@@ -98,6 +99,7 @@ class ChimeProduct:
             "mission": "CHIME-like",
             "reference_mission": "CHIME",
             "processing_level": self.processing_level,
+            "radiometric_unit": self.radiometric_unit,
             "tile": self.tile.tile_id,
             "epsg": self.tile.epsg,
             "gsd_m": CHIME_GSD,
