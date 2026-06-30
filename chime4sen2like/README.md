@@ -2,6 +2,13 @@
 
 ![License: Apache2](https://img.shields.io/badge/license-Apache%202-blue.svg?&logo=apache)
 
+> **⚠️ Deprecated / wrong direction.** This package targets **Sentinel-2** (it adapts
+> a hyperspectral input *for sen2like*, producing S2-like output). The project goal
+> is the opposite — harmonise/fuse hyperspectral missions **onto CHIME** (CHIME as
+> the reference mission). Use **[`../hyperspectral2chime`](../hyperspectral2chime)**
+> instead. This package is kept only as a reference for the S2-interop path and the
+> reusable spectral-aggregation core (now generalised in `hyperspectral2chime`).
+
 **chime4sen2like** turns a hyperspectral L1 product into a **CHIME-like L1C
 product** that the [sen2like](../sen2like) processor can ingest, following the
 *CHIME Fusion Roadmap* (CHIME-L2-FUSION). It is the CHIME counterpart of

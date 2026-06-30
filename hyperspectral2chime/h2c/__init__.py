@@ -1,0 +1,25 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2026 ESA.
+#
+# This file is part of hyperspectral2chime.
+# See https://github.com/senbox-org/sen2like for further info.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""hyperspectral2chime: harmonise/fuse hyperspectral missions onto CHIME.
+
+CHIME is the *reference* mission. Input missions (PRISMA first, then SBG, EnMAP,
+EMIT, DESIS, ...) are spectrally aggregated onto the CHIME band set, reframed to
+the CHIME grid (Sentinel-2 MGRS, 30 m GSD; CHIME MRD MR-070 / roadmap section
+5.1.2), and processed through a band-set-agnostic chain that reuses the sen2like
+algorithms to produce CHIME-like L2H/L2F Analysis Ready Data.
+"""

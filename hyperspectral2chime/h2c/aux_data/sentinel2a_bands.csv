@@ -1,0 +1,18 @@
+# Sentinel-2A MSI band set (central wavelength + FWHM, nm).
+# Provided so hyperspectral2chime can reproduce the prisma4sen2like target (13 S2
+# bands) for validation/parity. Approximate values from the S2 MSI Spectral
+# Response Functions; for operational use load the official ESA SRF instead.
+band,central_wavelength_nm,fwhm_nm
+B01,442.7,21.0
+B02,492.4,66.0
+B03,559.8,36.0
+B04,664.6,31.0
+B05,704.1,15.0
+B06,740.5,15.0
+B07,782.8,20.0
+B08,832.8,106.0
+B8A,864.7,21.0
+B09,945.1,20.0
+B10,1373.5,31.0
+B11,1613.7,91.0
+B12,2202.4,175.0
