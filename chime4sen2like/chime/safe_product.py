@@ -47,8 +47,11 @@ class SafeProduct:
     _short_granule_identifier_tpl = "{}_T{}_A{}_{}"
     _image_filename_tpl = "T{}_{}_{}"
 
-    _processing_baseline = "0000"
-    _processing_baseline_dotted = "00.00"
+    # Declare a modern Sentinel-2 processing baseline (>= 04.00). This is required
+    # by sen2like (it rejects baselines < 04.00) and is consistent with the
+    # radiometric-offset DN convention used for the band rasters.
+    _processing_baseline = "0511"
+    _processing_baseline_dotted = "05.11"
 
     def __init__(self, adapter: ProjectedCubeAdapter):
         self._adapter = adapter

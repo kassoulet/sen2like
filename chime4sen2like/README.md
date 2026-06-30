@@ -26,9 +26,10 @@ for the full reuse assessment.
 | Radiance → TOA reflectance conversion | **Implemented** |
 | MGRS reframing + Sentinel-2-like SAFE L1C packaging (S2 13-band target, DN-encoded) | **Implemented + run end-to-end** |
 | sen2like recognises & parses the SAFE (`S2H` product + reader registered in sen2like core) | **Implemented + verified in the sen2like env** |
+| sen2like TOA→L2H run produces a valid L2H product (all bands) | **Implemented + run end-to-end in the sen2like env** |
 | Mission-specific readers (CHIME L1C, SBG L1B, EnMAP, ...) | TODO |
 | L1B → orthorectification (alternative flow, Roadmap §5.1.6) | TODO |
-| Full sen2like L2H processing run on the produced SAFE | TODO (needs sen2like aux data: CAMS/DEM/GRI) |
+| Atmospheric correction / NBAR / geometry-matching / fusion blocks | TODO (need aux data: CAMS/DEM/GRI/BRDF + reference S2 products) |
 
 ## What is different from prisma4sen2like
 
@@ -82,8 +83,12 @@ product tree (`S2H_MSIL1C_..._T<tile>_...SAFE`) with uint16 DN band rasters
 
 sen2like recognises the product through the `S2H` product class
 (`ChimelikeProduct`) and reader (`Sentinel2ChimelikeMTL`) registered in sen2like
-core — verified by parsing a generated SAFE in the sen2like conda env. Running the
-full L2H *processing* additionally needs sen2like's auxiliary data (CAMS/DEM/GRI).
+core. A TOA→L2H run in the sen2like conda env produces a valid L2H product
+(all 11 output bands on the MGRS grid, with `MTD_MSIL2H`/`MTD_TL_L2H`/`L2H_QUALITY`
+and a quicklook). The atmospheric-correction, NBAR, geometry-matching and fusion
+blocks were disabled for that run because they need auxiliary data not present in
+the build environment (CAMS/DEM/GRI/BRDF + reference S2 products); enabling them is
+the remaining validation step.
 
 ## Tests
 

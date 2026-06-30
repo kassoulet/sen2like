@@ -61,11 +61,13 @@ _template_dict = {
     "H": {
         "S2": {"product": "xml_backbones/MTD_MSIL2H_S2.xml", "tile": "xml_backbones/MTD_TL_L2H_S2.xml"},
         "Prisma": {"product": "xml_backbones/MTD_MSIL2H_S2.xml", "tile": "xml_backbones/MTD_TL_L2H_S2.xml"},
+        "Chimelike": {"product": "xml_backbones/MTD_MSIL2H_S2.xml", "tile": "xml_backbones/MTD_TL_L2H_S2.xml"},
         "Landsat": {"product": "xml_backbones/MTD_OLIL2H_L8.xml", "tile": "xml_backbones/MTD_TL_L2H_L8.xml"},
     },
     "F": {
         "S2": {"product": "xml_backbones/MTD_MSIL2F_S2.xml", "tile": "xml_backbones/MTD_TL_L2F_S2.xml"},
         "Prisma": {"product": "xml_backbones/MTD_MSIL2F_S2.xml", "tile": "xml_backbones/MTD_TL_L2F_S2.xml"},
+        "Chimelike": {"product": "xml_backbones/MTD_MSIL2F_S2.xml", "tile": "xml_backbones/MTD_TL_L2F_S2.xml"},
         "Landsat": {"product": "xml_backbones/MTD_OLIL2F_L8.xml", "tile": "xml_backbones/MTD_TL_L2F_L8.xml"},
     },
 }
@@ -368,6 +370,7 @@ class LandsatToS2LProductMtdWriter(S2LProductMtdWriter):
 _product_mtl_writer_class_dict = {
     "S2": Sentinel2ToS2LProductMtdWriter,
     "Prisma": Sentinel2ToS2LProductMtdWriter,
+    "Chimelike": Sentinel2ToS2LProductMtdWriter,
     "L8": LandsatToS2LProductMtdWriter,
     "L9": LandsatToS2LProductMtdWriter,
 }
@@ -613,6 +616,7 @@ class LandsatToS2LTileMtdWriter(S2LTileMtdWriter):
 _tile_mtl_writer_class_dict = {
     "S2": Sentinel2ToS2LTileMtdWriter,
     "Prisma": Sentinel2ToS2LTileMtdWriter,
+    "Chimelike": Sentinel2ToS2LTileMtdWriter,
     "L8": LandsatToS2LTileMtdWriter,
     "L9": LandsatToS2LTileMtdWriter,
 }

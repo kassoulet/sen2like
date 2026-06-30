@@ -36,18 +36,18 @@ import xmlschema
 # define here all the blocks that are implemented, then user to choose
 # which blocks are to be run through the on/off switches in the config.ini file
 PROC_BLOCKS = OrderedDict()
-PROC_BLOCKS["S2L_Geometry"] = {"extension": "_REFRAMED.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Stitching"] = {"extension": "_STITCHED.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_GeometryCheck"] = {"extension": None, "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Toa"] = {"extension": "_TOA.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_InterCalibration"] = {"extension": "_INTERCAL.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Atmcor"] = {"extension": "_SURF.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Nbar"] = {"extension": "_BRDF.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Sbaf"] = {"extension": "_SBAF.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_TopographicCorrection"] = {"extension": "_TOPOCORR.TIF", "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_PackagerL2H"] = {"extension": None, "applicability": "L8_L9_S2_Prisma"}
-PROC_BLOCKS["S2L_Fusion"] = {"extension": "_FUSION.TIF", "applicability": "L8_L9_Prisma"}
-PROC_BLOCKS["S2L_PackagerL2F"] = {"extension": None, "applicability": "L8_L9_S2_Prisma"}
+PROC_BLOCKS["S2L_Geometry"] = {"extension": "_REFRAMED.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Stitching"] = {"extension": "_STITCHED.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_GeometryCheck"] = {"extension": None, "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Toa"] = {"extension": "_TOA.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_InterCalibration"] = {"extension": "_INTERCAL.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Atmcor"] = {"extension": "_SURF.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Nbar"] = {"extension": "_BRDF.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Sbaf"] = {"extension": "_SBAF.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_TopographicCorrection"] = {"extension": "_TOPOCORR.TIF", "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_PackagerL2H"] = {"extension": None, "applicability": "L8_L9_S2_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_Fusion"] = {"extension": "_FUSION.TIF", "applicability": "L8_L9_Prisma_Chimelike"}
+PROC_BLOCKS["S2L_PackagerL2F"] = {"extension": None, "applicability": "L8_L9_S2_Prisma_Chimelike"}
 
 logger = logging.getLogger("Sen2Like")
 

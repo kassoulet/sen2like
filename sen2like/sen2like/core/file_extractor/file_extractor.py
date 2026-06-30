@@ -32,7 +32,7 @@ from core.mask_util import ImageMasks, MaskImage, MaskInfo
 from core.readers.landsat import LandsatMTL
 from core.readers.landsat_maja import LandsatMajaMTL
 from core.readers.reader import BaseReader
-from core.readers.sentinel2 import Sentinel2MTL, Sentinel2PrismaMTL
+from core.readers.sentinel2 import Sentinel2ChimelikeMTL, Sentinel2MTL, Sentinel2PrismaMTL
 from core.readers.sentinel2_maja import Sentinel2MajaMTL
 from fmask import config as fmask_config
 from fmask import landsatangles
@@ -874,6 +874,7 @@ class LandsatMajaFileExtractor(InputFileExtractor):
 extractor_class = {
     Sentinel2MTL.__name__: S2FileExtractor,
     Sentinel2PrismaMTL.__name__: S2FileExtractor,
+    Sentinel2ChimelikeMTL.__name__: S2FileExtractor,
     LandsatMTL.__name__: LandsatFileExtractor,
     Sentinel2MajaMTL.__name__: S2MajaFileExtractor,
     LandsatMajaMTL.__name__: LandsatMajaFileExtractor,
