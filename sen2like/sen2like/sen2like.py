@@ -23,6 +23,7 @@
 import datetime
 import logging
 import os
+import shutil
 import sys
 from argparse import Namespace
 from collections import defaultdict
@@ -30,6 +31,7 @@ from multiprocessing import Pool
 
 from core import log
 from core.argparser import Mode, S2LArgumentParser
+from core.landsat_l1tp_stitcher import stitch_l1tp_products
 from core.product_archive import product_selector
 from core.product_archive.product_archive import InputProduct, InputProductArchive
 from core.product_preparation import ProductPreparator
@@ -55,7 +57,51 @@ def filter_product(product: S2L_Product):
     return True
 
 
-def pre_process_atmcor(s2l_product: S2L_Product, tile) -> S2L_Product | None:
+def _stitch_landsat_l1tp_if_needed(
+    s2l_product: S2L_Product, product_preparator: ProductPreparator
+) -> S2L_Product | None:
+    """Find the adjacent Landsat WRS-2 scene needed to fully cover the target MGRS tile, if
+    any, and merge it with `s2l_product` before atmospheric correction.
+
+    Running sen2cor once on the merged scene avoids the seams that would result from running
+    sen2cor independently on each partial scene and stitching the two already-corrected
+    outputs, each with its own independent, scene-level atmospheric correction.
+
+    Args:
+        s2l_product (S2L_Product): Landsat product about to be processed by sen2cor
+        product_preparator (ProductPreparator): used to search the adjacent scene
+
+    Returns:
+        a new S2L_Product read from the merged product directory, or None if no companion
+        scene was found (caller should keep using the original product)
+    """
+    companion = product_preparator.find_landsat_companion(s2l_product)
+    if companion is None:
+        logger.debug("No adjacent Landsat scene found, sen2cor will run on %s only", s2l_product.name)
+        return None
+
+    logger.info(
+        "Stitching Landsat L1TP scene %s with adjacent scene %s before sen2cor",
+        s2l_product.name,
+        companion.name,
+    )
+    output_dir = os.path.join(config.get("wd"), "landsat_stitch", s2l_product.name)
+    try:
+        stitch_l1tp_products(s2l_product.path, companion.path, output_dir)
+        return s2l_product.__class__(output_dir, s2l_product.context)
+    except Exception:
+        logger.warning(
+            "Failed to stitch Landsat L1TP scene %s with %s, falling back to unstitched product",
+            s2l_product.name,
+            companion.name,
+            exc_info=True,
+        )
+        if os.path.isdir(output_dir):
+            shutil.rmtree(output_dir, ignore_errors=True)
+        return None
+
+
+def pre_process_atmcor(s2l_product: S2L_Product, tile, product_preparator: ProductPreparator) -> S2L_Product | None:
     """
     Adapt processing parameters for atmo corr processing to use.
     THIS FUNCTION MODIFY SOME `s2l_product.context` PARAMETERS (use_sen2cor, doAtmcor, doStitching, doInterCalibration)
@@ -64,6 +110,8 @@ def pre_process_atmcor(s2l_product: S2L_Product, tile) -> S2L_Product | None:
     Args:
         s2l_product (S2L_Product): s2l_product to check atmo corr compatibility and run sen2cor on
         tile (str): tile name for sen2cor
+        product_preparator (ProductPreparator): used to search a Landsat companion scene to
+            stitch before sen2cor runs, when doStitching is enabled
 
     Returns:
         s2l_product after sen2cor if executed or provided s2l_product, or None if sen2cor fail
@@ -89,7 +137,18 @@ def pre_process_atmcor(s2l_product: S2L_Product, tile) -> S2L_Product | None:
         # Disable SMAC Atmospheric correction
         s2l_product.context.doAtmcor = False
 
-        # For now, do not enable stitching when sen2cor is used
+        if s2l_product.context.doStitching and s2l_product.sensor in ("L8", "L9"):
+            # Merge the adjacent Landsat scene needed to cover the tile *before* running
+            # sen2cor, so sen2cor performs a single scene-level atmospheric correction
+            # instead of two independent ones that could not be stitched afterward.
+            stitched_product = _stitch_landsat_l1tp_if_needed(s2l_product, product_preparator)
+            if stitched_product is not None:
+                s2l_product = stitched_product
+
+        # Post-AC stitching (S2L_Stitching) is unnecessary and unsafe for the sen2cor path:
+        # coverage is merged pre-AC above (when a companion scene was found), and stitching
+        # two independently sen2cor-corrected scenes afterward would mix two different
+        # scene-level atmospheric corrections and create seams.
         s2l_product.context.doStitching = False
 
         # Should be done before atmospheric correction
@@ -166,9 +225,14 @@ def process_an_input_product(tile, input_product, conf, args, tile_ref_image):
     #     logger.warning("L2A product, force disabling Atmo Corr")
     #     processing_context.doAtmcor = False
 
+    # Configure a product preparator
+    # (built before atmcor preprocessing so it can also be used to find a Landsat
+    # companion scene to stitch before sen2cor runs, see pre_process_atmcor)
+    product_preparator = ProductPreparator(conf, args, tile_ref_image)
+
     if processing_context.doAtmcor:
         # run sen2cor if any and update s2l_product.context
-        s2l_product = pre_process_atmcor(s2l_product, tile)
+        s2l_product = pre_process_atmcor(s2l_product, tile, product_preparator)
 
         # sen2cor fail
         if not s2l_product:
@@ -184,9 +248,6 @@ def process_an_input_product(tile, input_product, conf, args, tile_ref_image):
     # mainly for S2 L2A as input, but also match LS L2A from sen2cor
     if s2l_product.mtl.l2a_qi_report_path:
         s2l_product.metadata.qi["AC_PROCESSOR"] = "SEN2COR"
-
-    # Configure a product preparator
-    product_preparator = ProductPreparator(conf, args, tile_ref_image)
 
     # execute processing block on product
     process = ProductProcess(s2l_product, product_preparator, args.parallelize_bands, args.bands)

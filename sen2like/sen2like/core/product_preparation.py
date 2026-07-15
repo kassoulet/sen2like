@@ -207,6 +207,25 @@ class ProductPreparator:  # pylint: disable=too-few-public-methods
 
         return related_product
 
+    def find_landsat_companion(self, product: S2L_Product) -> S2L_Product | None:
+        """Search and instantiate the adjacent Landsat WRS-2 scene (row +/- 1) needed to
+        complete the coverage of the target MGRS tile for `product`, if any.
+
+        Uses the same coverage-based search as post-atmcor stitching, exposed here so it
+        can also be called earlier in the pipeline, before atmospheric correction
+        (see sen2like.py pre_process_atmcor), to stitch raw L1TP scenes before sen2cor runs.
+
+        Args:
+            product (S2L_Product): Landsat product to search a companion scene for
+
+        Returns:
+            S2L_Product | None: the companion product, or None if none was found
+        """
+        related_input_product = self._get_l8_interrelated_product(product)
+        if related_input_product is None:
+            return None
+        return related_input_product.s2l_product_class(related_input_product.path, product.context)
+
     def _set_related_product(self, product: S2L_Product):
         """Look for related product and attach it on the product if any.
         Also set ref_image on the related product
@@ -214,20 +233,22 @@ class ProductPreparator:  # pylint: disable=too-few-public-methods
         Args:
             product (S2L_Product): product to search related for
         """
-        related_input_product = None
+        related_product = None
         if product.sensor in ("L8", "L9"):
-            related_input_product = self._get_l8_interrelated_product(product)
+            related_product = self.find_landsat_companion(product)
         elif product.sensor == "S2":
             related_input_product = self._get_s2_interrelated_product(product)
+            if related_input_product is not None:
+                related_product = related_input_product.s2l_product_class(
+                    related_input_product.path, product.context
+                )
         else:
             logger.warning("stitching not supported for sensor %s", product.sensor)
 
-        if related_input_product is None:
+        if related_product is None:
             logger.info("No product found for stitching")
         else:
-            product.related_product = related_input_product.s2l_product_class(
-                related_input_product.path, product.context
-            )
+            product.related_product = related_product
 
             # set related product working dir
             product.related_product.working_dir = os.path.join(self._config.get("wd"), product.related_product.name)

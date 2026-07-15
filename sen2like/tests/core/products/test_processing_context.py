@@ -86,7 +86,8 @@ class TestProcessingContext(TestCase):
             product = DummyProduct(product_dir, processing_context)
 
             # sen2like product process reconfiguration
-            product = sen2like.pre_process_atmcor(product, "31TFJ")
+            # product_preparator is only used for Landsat products (not this DummyProduct, sensor S2A)
+            product = sen2like.pre_process_atmcor(product, "31TFJ", None)
 
             return product
 

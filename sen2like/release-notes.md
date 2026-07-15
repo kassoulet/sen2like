@@ -1,5 +1,13 @@
 # Sen2Like Release Notes
 
+## Unreleased
+
+### New features
+
+* Landsat 8/9 scenes needing two adjacent WRS-2 rows to cover the target MGRS tile are now
+  stitched at the raw L1TP level *before* sen2cor runs, so sen2cor performs a single seamless
+  scene-level atmospheric correction instead of skipping stitching entirely for the sen2cor path.
+
 ## v4.5.3
 
 ### New features
